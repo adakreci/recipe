@@ -1,0 +1,178 @@
+{
+	"info": {
+		"_postman_id": "5c22bab9-6cf8-4fa2-beb1-a8a4d708d778",
+		"name": "Recipe_vault",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create a new recipe",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"The first recipe 1\",\r\n    \"instructions\": \"The instructions for the first recipe 1\",\r\n    \"servings\": 1,\r\n    \"vegetarian\": true,\r\n    \"ingredients\": [\r\n        {\r\n            \"ingredientId\": 1,\r\n            \"measure\": 1.0,\r\n            \"unit\": \"MG_UNIT\"\r\n        }\r\n\r\n    ]\r\n}\r\n\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:80/api/recipes/add",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "80",
+					"path": [
+						"api",
+						"recipes",
+						"add"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add ingredients",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"ingredient \",\r\n    \"healthBenefits\" : \"very healthy\",\r\n    \"loop\": \"4\"\r\n}\r\n\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:80/api/ingredients/prepare",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "80",
+					"path": [
+						"api",
+						"ingredients",
+						"prepare"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update existing recipe",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"recipeId\": 1,\r\n    \"name\": \"The first recipe 1 update\",\r\n    \"instructions\": \"The instructions for the first recipe 1 update\",\r\n    \"servings\": 5,\r\n    \"vegetarian\": false,\r\n    \"ingredients\": [\r\n        {\r\n            \"ingredientId\": 2,\r\n            \"measure\": 0.5,\r\n            \"unit\": \"MG_UNIT\"\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:80/api/recipes/update",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "80",
+					"path": [
+						"api",
+						"recipes",
+						"update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get specific recipe by id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:80/api/recipes/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "80",
+					"path": [
+						"api",
+						"recipes",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete a specific recipie by id",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": ""
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search with params",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:80/api/recipes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "80",
+					"path": [
+						"api",
+						"recipes"
+					],
+					"query": [
+						{
+							"key": "vegetarian",
+							"value": "true",
+							"disabled": true
+						},
+						{
+							"key": "servings",
+							"value": "3",
+							"disabled": true
+						},
+						{
+							"key": "searchKey",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "includeIngredients",
+							"value": "Ingredient 1",
+							"disabled": true
+						},
+						{
+							"key": "excludeIngredients",
+							"value": "Ingredient 1",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
