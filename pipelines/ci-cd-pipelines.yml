@@ -1,0 +1,25 @@
+# Maven package Java
+# Build your Java project
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/java
+
+trigger:
+  - master
+
+variables:
+  - name: servicePrincipal
+    value: "recipe-sp"
+  - name: appService
+    value: "recipe-app-service"
+  - name: accountStorage
+    value: "recipesa"
+
+stages:
+  - template: templates/ci-pipelines.yml
+    parameters:
+      servicePrincipal: $(servicePrincipal)
+      accountStorage: $(accountStorage)
+  - template: templates/cd-pipelines.yml
+    parameters:
+      servicePrincipal: $(servicePrincipal)
+      appService: $(appService)

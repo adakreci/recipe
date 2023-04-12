@@ -1,0 +1,24 @@
+parameters:
+  - name: servicePrincipal
+    type: string
+  - name: appService
+    type: string
+
+stages:
+  - stage: ProvisionContinuesDeployment
+    displayName: "Provision Continues Deployment"
+    pool:
+      vmImage: windows-latest
+    jobs:
+      - job: ProvisionContinuesDeployment
+        displayName: "Provision Continues Deployment"
+        steps:
+          - download: current
+            artifact: recipe
+          - task: AzureRmWebAppDeployment@4
+            inputs:
+              ConnectionType: 'AzureRM'
+              azureSubscription: ${{ parameters.servicePrincipal }}
+              appType: 'webApp'
+              WebAppName: ${{ parameters.appService }}
+              packageForLinux: '$(Pipeline.Workspace)/recipe/**/*.?(war|jar)'

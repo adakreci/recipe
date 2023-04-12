@@ -1,0 +1,125 @@
+parameters:
+  - name: resourceGroup
+    type: string
+  - name: servicePrincipal
+    type: string
+  - name: location
+    type: string
+  - name: appServicePlan
+    type: string
+  - name: appService
+    type: string
+  - name: virtualNetwork
+    type: string
+  - name: virtualNetworkSubnet
+    type: string
+  - name: applicationInsights
+    type: string
+
+stages:
+  - stage: ProvisionRecipeInfrastructure
+    displayName: "Provision Recipe infrastructure"
+    pool:
+      vmImage: windows-latest
+    jobs:
+      - job: provisionVirtualNetwork
+        displayName: "Provision Virtual Network"
+        steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: ${{ parameters.servicePrincipal }}
+              displayName: "Provision Virtual Network ${{ parameters.virtualNetwork }}"
+              scriptType: 'ps'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az network vnet create `
+                  --resource-group ${{ parameters.resourceGroup }} `
+                  --name ${{ parameters.virtualNetwork }} `
+                  --address-prefix 10.0.0.0/16 `
+                  --subnet-name ${{ parameters.virtualNetworkSubnet }} `
+                  --subnet-prefix 10.0.0.0/24
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: ${{ parameters.servicePrincipal }}
+              displayName: "Provision Virtual Network Delegation for Subnet"
+              scriptType: 'ps'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az network vnet subnet update `
+                  --resource-group ${{ parameters.resourceGroup }} `
+                  --name ${{ parameters.virtualNetworkSubnet }} `
+                  --vnet-name ${{ parameters.virtualNetwork }} `
+                  --delegations Microsoft.Web/serverFarms
+      - job: provisionApplicationInsights
+        displayName: "Provision Application Insights"
+        steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: ${{ parameters.servicePrincipal }}
+              displayName: "Provision Application Insights ${{ parameters.applicationInsights }}"
+              scriptType: 'ps'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az config set extension.use_dynamic_install=yes_without_prompt
+
+                az monitor app-insights component create --app ${{ parameters.applicationInsights }} `
+                  --location ${{ parameters.location }} `
+                  --kind web `
+                  --resource-group ${{ parameters.resourceGroup }} `
+                  --application-type web `
+                  --retention-time 120
+      - job: provisionAppServicePlan
+        displayName: "Provision App Service Plan"
+        dependsOn: provisionVirtualNetwork
+        steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: ${{ parameters.servicePrincipal }}
+              displayName: "Provision App Service Plan ${{ parameters.appServicePlan }}"
+              scriptType: 'ps'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az appservice plan create `
+                  --name ${{ parameters.appServicePlan }} `
+                  --resource-group ${{ parameters.resourceGroup }} `
+                  --sku S1
+      - job: provisionAppService
+        displayName: "Provision App Service"
+        dependsOn: provisionAppServicePlan
+        steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: ${{ parameters.servicePrincipal }}
+              displayName: "Provision App Service ${{ parameters.appService }}"
+              scriptType: 'ps'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az webapp create `
+                  --name ${{ parameters.appService }} `
+                  --resource-group ${{ parameters.resourceGroup }} `
+                  --plan ${{ parameters.appServicePlan }} `
+                  --runtime "java:17:Java SE:17" `
+                  --vnet ${{ parameters.virtualNetwork }} `
+                  --subnet ${{ parameters.virtualNetworkSubnet }}
+      - job: provisionAppServiceSettings
+        displayName: "Provision App Service Settings"
+        dependsOn: provisionAppService
+        steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: ${{ parameters.servicePrincipal }}
+              displayName: "Provision App Service Settings ${{ parameters.appService }}"
+              scriptType: 'ps'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                $instrumentationKey = (az monitor app-insights component show `
+                                          --app ${{ parameters.applicationInsights }} `
+                                          --resource-group ${{ parameters.resourceGroup }} `
+                                          --query "instrumentationKey" `
+                                          --output tsv)
+                
+                az webapp config appsettings set `
+                  --name ${{ parameters.appService }} `
+                  --resource-group ${{ parameters.resourceGroup }} `
+                  --settings APPINSIGHTS_INSTRUMENTATIONKEY=${instrumentationKey} `
+                             APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=${instrumentationKey}

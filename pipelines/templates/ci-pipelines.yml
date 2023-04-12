@@ -1,0 +1,40 @@
+parameters:
+  - name: servicePrincipal
+    type: string
+  - name: accountStorage
+    type: string
+
+stages:
+  - stage: ProvisionContinuesIntegration
+    displayName: "Provision Continues Integration"
+    pool:
+      vmImage: windows-latest
+    jobs:
+      - job: ProvisionContinuesIntegration
+        displayName: "Provision Continues Integration"
+        steps:
+#          # Java tool installer
+#          # Acquire a specific version of Java from a user-supplied Azure blob or the tool cache and sets JAVA_HOME
+#          - task: JavaToolInstaller@0
+#            inputs:
+#              versionSpec: '17'
+#              jdkArchitectureOption: 'x64'
+#              jdkSourceOption: AzureStorage
+#              azureResourceManagerEndpoint: ${{ parameters.servicePrincipal }}
+#              azureStorageAccountName: ${{ parameters.accountStorage }}
+#              azureContainerName: 'jdk'
+#              azureCommonVirtualFile: 'OpenJDK17.zip'
+#              jdkDestinationDirectory: '$(agent.toolsDirectory)/jdk17'
+#              cleanDestinationDirectory: true
+          - task: Maven@3
+            displayName: 'Maven Package'
+            inputs:
+              mavenPomFile: 'pom.xml'
+          - task: CopyFiles@2
+            displayName: 'Copy Files to artifact staging directory'
+            inputs:
+              SourceFolder: '$(System.DefaultWorkingDirectory)'
+              Contents: '**/target/*.?(war|jar)'
+              TargetFolder: $(Build.ArtifactStagingDirectory)
+          - upload: $(Build.ArtifactStagingDirectory)
+            artifact: recipe
